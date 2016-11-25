@@ -12,7 +12,7 @@ shortme
 ## TODO
 
 - 校验API接口中URL参数的格式
-- redis结果查找失败后查找MySQL
+~~- redis结果查找失败后查找MySQL~~
 - 配置信息放到配置文件中或环境变量中
 
 ## 注意
@@ -21,4 +21,4 @@ shortme
 
 ## License
 
-GPL-3.0
+GPL 3.0

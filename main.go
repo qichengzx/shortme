@@ -117,7 +117,6 @@ func expandUrl(c *gin.Context) {
 	if url, ok := findByHash(hash); ok {
 		c.Redirect(http.StatusMovedPermanently, url)
 	}
-
 	// 注意:
 	// 	实际中，此应用的运行域名可能与默认域名不同，如a.com运行此程序，默认域名为b.com
 	// 	当访问一个不存在的HASH或a.com时，可以跳转到任意域名，即defaultDomain
@@ -201,7 +200,7 @@ func expand(hash string) int {
 func find(id int) (string, bool) {
 	var url string
 	err := db.QueryRow("SELECT url FROM url WHERE id = ?", id).Scan(&url)
-	if err != nil {
+	if err == nil {
 		return url, true
 	} else {
 		return "", false
@@ -218,6 +217,12 @@ func findByHash(h string) (string, bool) {
 	if url != "" {
 		return url, true
 	}
+
+	id := expand(h)
+	if urldb, ok := find(id); ok {
+		return urldb, true
+	}
+
 	return "", false
 }
 
