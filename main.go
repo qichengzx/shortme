@@ -18,21 +18,20 @@ import (
 const (
 	hdSalt        = "mysalt"
 	hdMinLength   = 5
-	defaultDomain = "http://localhost:8000/"
+	defaultDomain = "http://localhost/"
 )
 
 var (
-	// 定义常量
 	RedisClient *redis.Pool
 	RedisHost   = "127.0.0.1:6379"
 	RedisDb     = 0
 	RedisPwd    = ""
 
 	db      *sql.DB
-	DB_HOST = "tcp(127.0.0.1:3306)"
-	DB_NAME = "short"
-	DB_USER = "root"
-	DB_PASS = ""
+	DbHost = "tcp(127.0.0.1:3306)"
+	DbName = "short"
+	DbUser = "root"
+	DbPass = ""
 )
 
 func main() {
@@ -54,7 +53,6 @@ func main() {
 }
 
 func initRedis() {
-	// 建立连接池
 	RedisClient = &redis.Pool{
 		MaxIdle:     1,
 		MaxActive:   10,
@@ -75,17 +73,15 @@ func initRedis() {
 }
 
 func initMysql() {
-	dsn := DB_USER + ":" + DB_PASS + "@" + DB_HOST + "/" + DB_NAME + "?charset=utf8"
+	dsn := DbUser + ":" + DbPass + "@" + DbHost + "/" + DbName + "?charset=utf8"
 	db, _ = sql.Open("mysql", dsn)
 	db.SetMaxOpenConns(5)
 	db.SetMaxIdleConns(20)
 	db.Ping()
 }
 
-// 接受生成短网址请求
-// 参数: 长URL
-// 返回值: HASH
-// @TODO 校验URL格式
+// receive a url from www-form encoded
+// return a shortlen url
 func shortUrl(c *gin.Context) {
 	longUrl := c.PostForm("url")
 
@@ -110,25 +106,20 @@ func shortUrl(c *gin.Context) {
 	}
 }
 
-// 根据HASH解析并跳转到对应的长URL
-// 不存在则跳转到默认地址
+// look for long url from redis by hash
+// it will redirect to default host when long url is not exist
 func expandUrl(c *gin.Context) {
 	hash := c.Param("hash")
 
 	if url, ok := findByHash(hash); ok {
-		c.Redirect(http.StatusMovedPermanently, url)
+		c.Redirect(http.StatusFound, url)
 	}
-	// 注意:
-	// 	实际中，此应用的运行域名可能与默认域名不同，如a.com运行此程序，默认域名为b.com
-	// 	当访问一个不存在的HASH或a.com时，可以跳转到任意域名，即defaultDomain
-	c.Redirect(http.StatusMovedPermanently, defaultDomain)
+
+	c.Redirect(http.StatusFound, defaultDomain)
 }
 
-// 根据HASH在redis中查找并返回结果
-// 不存在则返回404状态
-//
-// 不存在可能是redis中没有，此处没有再次检查MySQL中是否存在
-// 可以根据实际情况做调整
+// look for long url from redis by hash
+// return the long url if result exist or 404 if result is null
 func expandUrlApi(c *gin.Context) {
 	hash := c.Param("hash")
 
@@ -141,15 +132,13 @@ func expandUrlApi(c *gin.Context) {
 		return
 	}
 
-	// 此处可以尝试在MySQL中再次查询
 	c.JSON(200, gin.H{
 		"status":  404,
 		"message": "url of hash is not exist",
 	})
 }
 
-// HASH转ID后查找
-// 与上一方法类似，将HASH转成ID后在数据库中查找
+// look for long url from MySQL by id
 func expandUrlApi2(c *gin.Context) {
 	hash := c.Param("hash")
 	id := expand(hash)
@@ -165,12 +154,11 @@ func expandUrlApi2(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status":  404,
 		"message": "url of hash is not exist",
-		"data":    defaultDomain,
 	})
 }
 
-// 将ID转换成对应的HASH值
-// hdSalt与hdMinLength 会影响生成结果，确定后不要改动
+// shortlen a url by id
+// the result depends on hdSalt and hdMinLength
 func shortenURL(id int) string {
 	hd := hashids.NewData()
 	hd.Salt = hdSalt
@@ -182,8 +170,8 @@ func shortenURL(id int) string {
 	return e
 }
 
-// 根据HASH解析出对应的ID值
-// hdSalt与hdMinLength 会影响生成结果，确定后不要改动
+// generate a ID from HASH by hashids
+// the result depends on hdSalt and hdMinLength
 func expand(hash string) int {
 	hd := hashids.NewData()
 	hd.Salt = hdSalt
@@ -195,7 +183,7 @@ func expand(hash string) int {
 	return d[0]
 }
 
-// 数据库中根据ID查找
+// look for url in the mysql by id
 func find(id int) (string, bool) {
 	var url string
 	err := db.QueryRow("SELECT url FROM url WHERE id = ?", id).Scan(&url)
@@ -206,7 +194,7 @@ func find(id int) (string, bool) {
 	}
 }
 
-// redis中根据HASH查找
+// findByHash for find in redis by hash
 func findByHash(h string) (string, bool) {
 	rc := RedisClient.Get()
 
@@ -217,6 +205,7 @@ func findByHash(h string) (string, bool) {
 		return url, true
 	}
 
+	// if the redis result is null ,  in the mysql
 	id := expand(h)
 	if urldb, ok := find(id); ok {
 		return urldb, true
@@ -225,8 +214,8 @@ func findByHash(h string) (string, bool) {
 	return "", false
 }
 
-// 将长网址插入到数据库中
-// 并把返回的ID生成HASH和长网址存入redis
+// add long url to mysql and use the result ID to generate hash
+// add hash and long url to redis
 func insert(url string) (string, bool) {
 	stmt, _ := db.Prepare(`INSERT INTO url (url) values (?)`)
 	res, err := stmt.Exec(url)

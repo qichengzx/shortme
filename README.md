@@ -1,23 +1,24 @@
 shortme
 ---------
 
-### 基于Go的短网址 生成&解析 系统
+### URL shortener service, powered by Go
 
-## 功能列表
+[中文](./README_ZH.md)
 
-- API提交生成短网址
-- API根据HASH解析出对应的长网址
-- 根据HASH跳转到对应的网址
+## Features
 
-## TODO
+- shortlen url
+- redirect to url of hash
 
-- 校验API接口中URL参数的格式
-- ~~redis结果查找失败后查找MySQL~~
-- 配置信息放到配置文件中或环境变量中
+## RUN
 
-## 注意
+```
+git clone git@github.com:qichengzx/shortme.git
+cd shortme
+go run main.go
+```
 
-此例中使用的go-hashids包的生成HASH的方法返回结果为数组，取第0个值作为HASH，需要修改
+open "[http://localhost:8000](http://localhost:8000)"
 
 ## License
 
