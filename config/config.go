@@ -22,10 +22,6 @@ func init() {
 	}
 }
 
-func Get(name string) (string, error) {
-	return Conf.GetValue(RUNMODE, name)
-}
-
 func GetByBlock(block, name string) (string, error) {
 	return Conf.GetValue(block, name)
 }

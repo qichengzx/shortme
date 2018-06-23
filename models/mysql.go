@@ -17,10 +17,10 @@ var (
 )
 
 func init() {
-	DB_ADDR, err = config.Get("mysql.addr")
-	DB_NAME, err = config.Get("mysql.db")
-	DB_USER, err = config.Get("mysql.user")
-	DB_PASS, err = config.Get("mysql.password")
+	DB_ADDR, err = config.GetByBlock("mysql", "mysql.addr")
+	DB_NAME, err = config.GetByBlock("mysql", "mysql.db")
+	DB_USER, err = config.GetByBlock("mysql", "mysql.user")
+	DB_PASS, err = config.GetByBlock("mysql", "mysql.password")
 
 	DSN = DB_USER + ":" + DB_PASS + "@" + DB_ADDR + "/" + DB_NAME + "?charset=utf8&loc=Asia%2FShanghai&parseTime=true"
 

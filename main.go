@@ -30,6 +30,11 @@ func main() {
 	})
 	r.GET("/:hash", expandUrl)
 
+	api := r.Group("/api")
+	{
+		api.POST("shorten", shorten)
+	}
+
 	r.Run(port)
 }
 
@@ -49,4 +54,18 @@ func expandUrl(c *gin.Context) {
 
 	c.Redirect(http.StatusFound, defaultUrl)
 	return
+}
+
+func shorten(c *gin.Context) {
+	longUrl := c.PostForm("long_url")
+
+	url, err := models.Save(longUrl)
+	if err != nil {
+		panic(err)
+	}
+
+	c.JSON(200, gin.H{
+		"action": "shorten",
+		"result": defaultUrl + url.HASH,
+	})
 }
