@@ -28,11 +28,13 @@ func main() {
 	r.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, defaultUrl)
 	})
-	r.GET("/:hash", expandUrl)
+	// TODO
+	//r.GET("/:hash", expandUrl)
 
 	api := r.Group("/api")
 	{
 		api.POST("shorten", shorten)
+		api.GET("lookup/:hash", lookup)
 	}
 
 	r.Run(port)
@@ -46,7 +48,7 @@ func expandUrl(c *gin.Context) {
 		return
 	}
 
-	url, _ := models.Find(hash)
+	url := models.FindLongUrl(hash)
 	if url != "" {
 		c.Redirect(http.StatusFound, url)
 		return
@@ -67,5 +69,15 @@ func shorten(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"action": "shorten",
 		"result": defaultUrl + url.HASH,
+	})
+}
+
+func lookup(c *gin.Context) {
+	hash := c.Param("hash")
+
+	url := models.Find(hash)
+	c.JSON(200, gin.H{
+		"action": "lookup",
+		"result": url,
 	})
 }
