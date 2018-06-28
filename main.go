@@ -60,8 +60,8 @@ func expandUrl(c *gin.Context) {
 
 func shorten(c *gin.Context) {
 	longUrl := c.PostForm("long_url")
-
-	url, err := models.Save(longUrl)
+	hash := c.PostForm("hash")
+	url, err := models.Save(longUrl, hash)
 	if err != nil {
 		panic(err)
 	}

@@ -24,10 +24,10 @@ func Find(hash string) *URL {
 	return u
 }
 
-func Save(longUrl string) (*URL, error) {
+func Save(longUrl, customHash string) (*URL, error) {
 	var url = new(URL)
 	url.CreatedAt = time.Now().UTC()
-	res, err := db.Exec("INSERT INTO `links` (`long_url`,`hash`,`created_at`) values (?,?,?)", longUrl, "", url.CreatedAt)
+	res, err := db.Exec("INSERT INTO `links` (`long_url`,`hash`,`created_at`) values (?,?,?)", longUrl, customHash, url.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -35,12 +35,17 @@ func Save(longUrl string) (*URL, error) {
 	if err != nil {
 		return nil, err
 	}
-	hash := utils.Encode(id)
-	db.Exec("UPDATE `links` SET `hash`=? WHERE `id`=?", hash, id)
 
 	url.ID = id
 	url.LongUrl = longUrl
-	url.HASH = hash
+
+	if customHash == "" {
+		hash := utils.Encode(id)
+		db.Exec("UPDATE `links` SET `hash`=? WHERE `id`=?", hash, id)
+		url.HASH = hash
+	} else {
+		url.HASH = customHash
+	}
 
 	return url, err
 }
