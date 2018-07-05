@@ -25,11 +25,15 @@ func init() {
 
 func main() {
 	r := gin.Default()
+
+	r.LoadHTMLGlob("template/*")
 	r.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, defaultUrl)
+		c.HTML(200, "index.html", gin.H{})
 	})
 	// TODO
 	//r.GET("/:hash", expandUrl)
+
+	r.POST("shorten", shortenweb)
 
 	api := r.Group("/api")
 	{
@@ -38,6 +42,20 @@ func main() {
 	}
 
 	r.Run(port)
+}
+
+func shortenweb(c *gin.Context) {
+	longUrl := c.PostForm("long_url")
+	hash := c.PostForm("hash")
+	url, err := models.Save(longUrl, hash)
+	if err != nil {
+		panic(err)
+	}
+
+	c.HTML(200, "result.html", gin.H{
+		"ok":     true,
+		"result": defaultUrl + url.HASH,
+	})
 }
 
 // look for long url from redis by hash
