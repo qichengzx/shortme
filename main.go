@@ -26,7 +26,7 @@ func init() {
 func main() {
 	r := gin.Default()
 
-	r.LoadHTMLGlob("template/*")
+	r.LoadHTMLGlob("source/template/*")
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(200, "index.html", gin.H{})
 	})

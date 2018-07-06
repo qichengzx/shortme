@@ -24,12 +24,17 @@
     <div class="hero-body">
         <div class="container has-text-centered">
             {{ if .ok }}
-            <h3>{{ .result }}</h3>
+            <h3 >{{ .result }}</h3>
+            <a class="button is-primary button-copy" data-clipboard-text="{{ .result }}">Copy</a>
             {{ else }}
             <p>Failed</p>
             {{ end }}
         </div>
     </div>
 </section>
+<script src="https://unpkg.com/clipboard@2.0.0/dist/clipboard.min.js"></script>
+<script>
+var clipboard = new ClipboardJS('.button-copy');
+</script>
 </body>
 </html>
