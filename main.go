@@ -34,6 +34,7 @@ func main() {
 	//r.GET("/:hash", expandUrl)
 
 	r.POST("shorten", shortenweb)
+	r.GET("lookup/:hash", lookupWeb)
 
 	api := r.Group("/api")
 	{
@@ -86,6 +87,17 @@ func shorten(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"action": "shorten",
+		"result": defaultUrl + url.HASH,
+	})
+}
+
+func lookupWeb(c *gin.Context) {
+	hash := c.Param("hash")
+
+	url := models.Find(hash)
+
+	c.HTML(200, "result.html", gin.H{
+		"ok":     true,
 		"result": defaultUrl + url.HASH,
 	})
 }
